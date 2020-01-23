@@ -1,0 +1,152 @@
+#!/usr/bin/perl
+#
+# Programmer:    Craig Stuart Sapp <craig.stanford.edu>
+# Creation Date: Wed Jan 22 22:48:42 PST 2020
+# Last Modified: Wed Jan 22 22:48:45 PST 2020
+# Filename:      mpg2pag
+# Syntax:        perl 5
+# vim:           ts=3
+#
+# Description:   Converted the original MPG (single page i-files) for
+#                each part into a single PAG (multi-page i-file).  Recursively
+#                goes through each directory to collages the individual
+#                pages files.  The location of the page file is given at
+#                the start of the file on a line that starts:
+#                   @@@FILE:
+#
+
+use strict;
+use Getopt::Long;
+
+my @dirs = @ARGV;
+
+my $listQ = 0;
+my $prefix = `pwd`;
+my $prefixb = "vivaldi";
+chomp $prefix;
+$prefix =~ s/.*\///;
+Getopt::Long::Configure("bundling");
+GetOptions (
+   'l|list' => \$listQ,
+	'b|base=s' => \$prefix,
+	'p|prefix=s' => \$prefixb
+);
+
+for my $dir (@dirs) {
+	if (!-d $dir) {
+		print STDERR "$dir is not a directory\n";
+		next;
+	}
+	processDirectory($dir);
+}
+
+exit(0);
+
+
+###########################################################################
+
+##############################
+##
+## processDirectory -- Gemerate a PAG file for the specified 
+##     directory which represents an instrumental part.
+##
+
+sub processDirectory {
+	my ($dir) = @_;
+	my @files = getFileList($dir);
+	for (my $i=0; $i<@files; $i++) {
+		$files[$i] =~ s=\/\/=\/=g;
+	}
+	if ($listQ) {
+		for (my $i=0; $i<@files; $i++) {
+			print "$files[$i]\n";
+		}
+		return;
+	}
+
+	for (my $i=0; $i<@files; $i++) {
+		my $name = "$prefixb/$prefix/$files[$i]";
+		$name =~ s=\/\/=\/=g;
+		$name =~ s=^\/==;
+		print "\@\@\@FILE: $name\n";
+		open (FILE, $files[$i]) or die "Cannot read $files[$i]\n";
+		my @contents = <FILE>;
+		close FILE;
+		for (my $j=0; $j<@contents; $j++) {
+			my $line = $contents[$j];
+			chomp $line;
+			$line =~ s/\s+$//;
+			print "$line\n";
+		}
+		print "P\n";
+	}
+}
+
+
+
+##############################
+##
+## getFileList -- Return a recursive list of files in the given directory.
+##    The files should be MPG (single page i-files), but this is not
+##    checked (use the -l option to list the files for a basic check).
+##
+
+sub getFileList {
+	my ($basedir) = @_;
+	my @output;
+	my @dirs = getDirs("$basedir");
+	my @files = getFiles("$basedir");
+	for (my $i=0; $i<@files; $i++) {
+		$output[@output] = "$basedir/$files[$i]";
+	}
+	for (my $i=0; $i<@dirs; $i++) {
+		push(@output, getFileList("$basedir/$dirs[$i]"));
+	}
+	return @output;
+}
+
+
+
+##############################
+##
+## getFiles -- Get a list of the files in the specified directory.
+##
+
+sub getFiles {
+	my ($dir) = @_;
+	opendir (DIR, $dir) or die "Cannot open directory $dir\n";
+	my @output;
+	while (my $file = readdir(DIR)) {
+		next if $file =~ /^\./;
+		next if -d "$dir/$file";
+		if (-r "$dir/$file") {
+			$output[@output] = $file;
+		}
+	}
+	closedir(DIR);
+	return sort @output;
+}
+
+
+
+##############################
+##
+## getDirs -- Get a list of the directories in the specified directory.
+##
+
+sub getDirs {
+	my ($dir) = @_;
+	opendir (DIR, $dir) or die "Cannot open directory $dir\n";
+	my @output;
+	while (my $file = readdir(DIR)) {
+		next if $file =~ /^\./;
+		if (-d "$dir/$file") {
+			$output[@output] = $file;
+		}
+	}
+	closedir(DIR);
+	return sort @output;
+}
+
+
+
