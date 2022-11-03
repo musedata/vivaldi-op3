@@ -7,7 +7,7 @@ Z 5 300 dots/inch
 Z 6 21 dots per staff line
 Z 7 1
 X 37 500 3063 Copyright 2004 Center for Computer Assisted Research in the Humanities (CCARH)
-X 46 575 120 Concerto No. 2 in G Minor (RV 578)
+X 46 1200C 120 Concerto No. 2 in G Minor (RV 578)
 S 0 280 280 1970 84 1 "(.)"
 L 0 0 0 0 0 * 0 21
 J D 1 112 -56 1 6913 0 0
@@ -18,7 +18,7 @@ K 0 0 34
 J K -1 85 0 1 6913 0 0
 K 0 42 65
 J D 5 128 -60 1 6913 0 0
-W 0 0 37 Adagio e spiccato
+W 0 0 34 Adagio e spiccato
 J T 101 128 63 1 6913 0 0
 K 0 0 37
 J S 6 242 42 46 0 0 0
